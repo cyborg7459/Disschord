@@ -1,0 +1,11 @@
+{
+  "name": "disschord",
+  "version": "1.0.0",
+  "description": "Chat app using NodeJS and SocketIO",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "cyborg7459",
+  "license": "ISC"
+}
