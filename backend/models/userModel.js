@@ -68,8 +68,8 @@ userSchema.pre(/^find/, function(next) {
 })
 
 // Schema method for comparing password provided by the user and the password stored in the database
-userSchema.methods.correctPassword = function(password, userPassword) {
-    return bcrypt.compare(password, userPassword);
+userSchema.methods.correctPassword = function(userPassword, actualPassword) {
+    return bcrypt.compare(userPassword, actualPassword);
 }
 
 // Schema method to check whether the JWT had been issued before password was changed or not. Returns true if password was changed after JWT issued

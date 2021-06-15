@@ -43,3 +43,26 @@ exports.signup = async (req, res, next) => {
         })
     }
 }
+
+exports.login = async (req, res, next) => {
+    try {
+        const email = req.body.email;
+        const password = req.body.password;
+        const user = await User.findOne({ email }).select('+password');
+        if(user && await user.correctPassword(password, user.password)) {
+            sendJSONWebToken(user, 200, res);
+        }
+        else {
+            res.status(403).json({
+                status: 'Failure',
+                message: 'Either email or password is incorrect'
+            })
+        }
+    }
+    catch(err) {
+        res.status(200).json({
+            status: 'Failure',
+            message: err.message
+        })
+    }
+}
