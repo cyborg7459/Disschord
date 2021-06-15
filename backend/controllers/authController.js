@@ -66,3 +66,13 @@ exports.login = async (req, res, next) => {
         })
     }
 }
+
+exports.logout = (req, res, next) => {
+    res.cookie('jwt', 'random', {
+        expiresIn: new Date(Date.now() + 500)
+    });
+    res.status(200).json({
+        status: 'Success',
+        message: 'Successfully logged out'
+    });
+}
