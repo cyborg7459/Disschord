@@ -1,7 +1,12 @@
 import React from 'react';
-import axios from 'axios';
-import {Route, Switch} from 'react-router-dom';
+import { Route, Switch, Redirect } from 'react-router-dom';
+import { connect } from 'react-redux';
+import { withRouter } from 'react-router';
+
 import StartupPage from './pages/startupPage/startup-page';
+import LoginPage from './pages/loginPage/login-page';
+import RegisterPage from './pages/registerPage/register-page';
+import MainPage from './pages/mainPage/main-page';
 
 class App extends React.Component {
 
@@ -9,20 +14,25 @@ class App extends React.Component {
     displayMsg : ""
   }
 
-  async componentDidMount() {
-    const data = await axios.get('http://localhost:8080/api/v1/test');
-    this.setState({
-      displayMsg : data.data.message
-    })
+  componentDidMount() {
+    // alert(this.props.user.isAuthenticated);
   }
 
   render() {
     return (
       <Switch>
-        <Route path="/" component={StartupPage}/>
+        <Route exact path="/" component={StartupPage}/>
+        <Route exact path="/login" component={LoginPage} />
+        <Route exact path="/register" component={RegisterPage} />
+        <Route exact path="/home" render={() => this.props.user.usAuthenticated ? <MainPage/> : <Redirect to="/login"/>} />
+        <Route path="*" component={LoginPage}/> 
       </Switch>
     )
   }
 }
 
-export default App;
+const mapStateToProps = state => ({
+  user : state.user
+})
+
+export default withRouter(connect(mapStateToProps)(App));
