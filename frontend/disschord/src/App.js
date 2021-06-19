@@ -15,8 +15,11 @@ class App extends React.Component {
     displayMsg : ""
   }
 
-  componentDidMount() {
-    axios.get('http://127.0.0.1:8080/api/v1/test');
+  async componentDidMount() {
+    const data = await axios.get('http://127.0.0.1:8080/api/v1/test', {
+      withCredentials: true
+    });
+    console.log(data.data);
   }
 
   render() {
