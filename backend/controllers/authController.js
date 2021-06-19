@@ -53,7 +53,7 @@ exports.login = async (req, res, next) => {
             sendJSONWebToken(user, 200, res);
         }
         else {
-            res.status(403).json({
+            res.status(200).json({
                 status: 'Failure',
                 message: 'Either email or password is incorrect'
             })
