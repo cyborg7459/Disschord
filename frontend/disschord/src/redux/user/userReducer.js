@@ -1,7 +1,7 @@
 import UserActionTypes from './userTypes';
 
 const INITIAL_STATE = {
-    isAutheticated: false,
+    isAuthenticated: false,
     currentUser: null
 }
 
@@ -10,12 +10,12 @@ const userReducer = (state = INITIAL_STATE, action) => {
         case UserActionTypes.LOG_IN :
             return {
                 ...state,
-                isAutheticated : true
+                isAuthenticated : true
             }
         case UserActionTypes.LOG_OUT :
             return {
                 ...state,
-                isAutheticated : false,
+                isAuthenticated : false,
                 currentUser : null
             }
         case UserActionTypes.SET_USER :
