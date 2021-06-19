@@ -11,11 +11,11 @@ const createJSONWebToken = id => {
 const sendJSONWebToken = (user, statusCode, res) => {
     const token = createJSONWebToken(user._id);
     const cookieOptions = {
-        expiresIn: new Date(Date.now() + 30*24*60*60*1000),
-        httpOnly: true
+        expiresIn: new Date(Date.now() + 30*24*60*60*1000)
     }
     
     res.cookie('jwt', token, cookieOptions);
+    console.log(res);
     user.password = undefined;
     res.status(statusCode).json({
         status: 'Success',

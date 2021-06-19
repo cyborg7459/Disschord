@@ -22,6 +22,7 @@ app.use((req, res, next) => {
     next();
 })
 app.get('/api/v1/test', (req, res) => {
+    console.log(req.cookies);
     res.status(200).json({
         status: 'Success',
         message: 'Everything seems to work fine'

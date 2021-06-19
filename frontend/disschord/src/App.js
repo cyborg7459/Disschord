@@ -2,6 +2,7 @@ import React from 'react';
 import { Route, Switch, Redirect } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router';
+import axios from 'axios';
 
 import StartupPage from './pages/startupPage/startup-page';
 import LoginPage from './pages/loginPage/login-page';
@@ -15,7 +16,7 @@ class App extends React.Component {
   }
 
   componentDidMount() {
-    // alert(this.props.user.isAuthenticated);
+    axios.get('http://127.0.0.1:8080/api/v1/test');
   }
 
   render() {
