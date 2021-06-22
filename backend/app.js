@@ -4,6 +4,7 @@ const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 
 const userRouter = require('./routes/userRoutes');
+const globalErrorHandler = require('./controllers/errorController');
 
 if(process.env.NODE_ENV === 'development') {
     console.log('Running app in development mode');
@@ -30,5 +31,6 @@ app.get('/api/v1/test', (req, res) => {
     })
 })
 app.use('/api/v1/users', userRouter);
+app.use(globalErrorHandler);
 
 module.exports = app;

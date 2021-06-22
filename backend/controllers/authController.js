@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 
 const User = require('../models/userModel');
+const appError = require('../utils/appError');
 
 const createJSONWebToken = id => {
     return jwt.sign({id}, process.env.JWT_SECRET, {
@@ -51,21 +52,11 @@ exports.login = async (req, res, next) => {
         const email = req.body.email;
         const password = req.body.password;
         const user = await User.findOne({ email }).select('+password');
-        if(user && await user.correctPassword(password, user.password)) {
-            sendJSONWebToken(user, 200, res);
-        }
-        else {
-            res.status(200).json({
-                status: 'Failure',
-                message: 'Either email or password is incorrect'
-            })
-        }
+        if(user && await user.correctPassword(password, user.password)) sendJSONWebToken(user, 200, res);
+        else return next(new appError('Either email or password is incorrect', 200));
     }
     catch(err) {
-        res.status(200).json({
-            status: 'Failure',
-            message: err.message
-        })
+        next(new appError(err.message, 200));
     }
 }
 
@@ -77,4 +68,21 @@ exports.logout = (req, res, next) => {
         status: 'Success',
         message: 'Successfully logged out'
     });
+}
+
+exports.protect = (req, res, next) => {
+    try {
+        let token;
+        if(req.headers.authorization && req.headers.authorization.startsWtih('Bearer'))
+            token = req.headers.authorization.split(' ')[1];
+        else if(req.cookies.jwt)
+            token = req.cookies.jwt;
+
+        if(!token) {
+            
+        }
+    }
+    catch(err) {
+
+    }
 }
