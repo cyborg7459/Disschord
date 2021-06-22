@@ -18,8 +18,6 @@ const sendJSONWebToken = (user, statusCode, res) => {
     
     res.cookie('jwt', token, cookieOptions);
     user.password = undefined;
-
-    console.log(res);
     
     res.status(statusCode).json({
         status: 'Success',

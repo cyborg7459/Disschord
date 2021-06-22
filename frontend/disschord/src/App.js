@@ -10,25 +10,13 @@ import RegisterPage from './pages/registerPage/register-page';
 import MainPage from './pages/mainPage/main-page';
 
 class App extends React.Component {
-
-  state = {
-    displayMsg : ""
-  }
-
-  async componentDidMount() {
-    const data = await axios.get('http://127.0.0.1:8080/api/v1/test', {
-      withCredentials: true
-    });
-    console.log(data.data);
-  }
-
   render() {
     return (
       <Switch>
         <Route exact path="/" component={StartupPage}/>
         <Route exact path="/login" component={LoginPage} />
         <Route exact path="/register" component={RegisterPage} />
-        <Route exact path="/home" render={() => this.props.user.usAuthenticated ? <MainPage/> : <Redirect to="/login"/>} />
+        <Route exact path="/home" render={() => this.props.user.isAuthenticated ? <MainPage/> : <Redirect to="/login"/>} />
         <Route path="*" component={LoginPage}/> 
       </Switch>
     )

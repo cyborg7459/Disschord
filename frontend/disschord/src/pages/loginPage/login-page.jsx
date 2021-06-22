@@ -1,5 +1,7 @@
 import React from 'react';
 import axios from 'axios';
+import { connect } from 'react-redux';
+import { logUserIn, setUser } from '../../redux/user/userActions';
 
 class LoginPage extends React.Component {
 
@@ -12,7 +14,17 @@ class LoginPage extends React.Component {
         }
 
         const res = await axios.post('http://127.0.0.1:8080/api/v1/users/login', credentials);
-        console.log(res);
+        if(res.data.status === "Success") {
+            const data = res.data;
+            localStorage.setItem('jwt', data.token);
+            this.props.logUserIn();
+            const user = data.data.user;
+            this.props.setUser(user);
+            this.props.history.push('/main');
+        }
+        else {
+            alert("Wrong email ID or password");
+        }
     }
 
     render() {
@@ -30,4 +42,9 @@ class LoginPage extends React.Component {
     }
 }
 
-export default LoginPage;
+const mapDispatchToProps = dispatch => ({
+    logUserIn : () => dispatch(logUserIn()),
+    setUser : user => dispatch(setUser(user))
+});
+
+export default connect(null, mapDispatchToProps)(LoginPage);
