@@ -40,10 +40,7 @@ exports.signup = async (req, res, next) => {
         sendJSONWebToken(newUser, 201, res);
     }
     catch(err) {
-        res.status(200).json({
-            status: 'Failure',
-            message: err.message
-        })
+        return next(err);
     }
 }
 
@@ -61,7 +58,7 @@ exports.login = async (req, res, next) => {
 }
 
 exports.logout = (req, res, next) => {
-    res.cookie('jwt', 'random', {
+    res.cookie('jwt', null, {
         expiresIn: new Date(Date.now() + 500)
     });
     res.status(200).json({
@@ -73,16 +70,25 @@ exports.logout = (req, res, next) => {
 exports.protect = (req, res, next) => {
     try {
         let token;
-        if(req.headers.authorization && req.headers.authorization.startsWtih('Bearer'))
+        if(req.headers.authorization && req.headers.authorization.startsWith('Bearer'))
             token = req.headers.authorization.split(' ')[1];
         else if(req.cookies.jwt)
             token = req.cookies.jwt;
 
-        if(!token) {
-            
-        }
+        if(!token || token === 'null') return next(new appError('You are not logged in', 401));
+
+        jwt.verify(token, process.env.JWT_SECRET, async (err, decodedToken) => {
+            if(err) return next(err);
+            else {
+                const user = await User.findById(decodedToken.id);
+                if(!user) return next(new appError('Given user does not exists', 401));
+                else if(user.changedPasswordAfter(decodedToken.iat)) return next(new appError('Password has been changed. Please enter latest password', 401));
+                req.user = user;
+                next();
+            }
+        })
     }
     catch(err) {
-
+        return next(err);
     }
 }

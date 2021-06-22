@@ -1,5 +1,9 @@
 const appError = require('../utils/appError');
 
+handleDuplicateErrorDB = () => {
+    return new appError('Duplicate value error', 400);
+}
+
 const devError = (err, res) => {
     res.status(err.statusCode).json({
         status: err.status, 
@@ -29,6 +33,10 @@ module.exports = (err, req, res, next) => {
     err.status = err.status || 'Error';
     if(process.env.NODE_ENV === 'development')
         devError(err, res);
-    else 
-        prodError(err, res);
+    else {
+        let error;
+        if(err.code === 11000)
+            error = handleDuplicateErrorDB();
+        prodError(error, res);
+    }
 }
