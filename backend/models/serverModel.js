@@ -1,10 +1,11 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
 
-const serverModel = new mongoose.Schema({
+const serverSchema = new mongoose.Schema({
     name: {
         type: String,
-        required: [true, 'A server must have a name']
+        required: [true, 'A server must have a name'],
+        unique: true
     },
     isPrivate: {
         type: Boolean,
@@ -38,14 +39,17 @@ const serverModel = new mongoose.Schema({
     }
 })
 
-serverSchema.virtuals('memberCount').get(function() {
-    return this.members.length()
+serverSchema.virtual('memberCount').get(function() {
+    return this.members.length
 });
 
 serverSchema.pre('save', function(next) {
     this.slug = slugify(this.name, {
         lower: true
     });
+    if(this.isNew) {
+        this.createAt = new Date(Date.now());
+    }
     next();
 })
 

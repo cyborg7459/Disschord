@@ -4,6 +4,11 @@ handleDuplicateErrorDB = () => {
     return new appError('Duplicate value error', 400);
 }
 
+handleValidationErrorDB = errMsg => {
+    const message = errMsg.split(',')[0].split(':')[2].trim();
+    return new appError(message, 500);
+}
+
 const devError = (err, res) => {
     res.status(err.statusCode).json({
         status: err.status, 
@@ -34,9 +39,11 @@ module.exports = (err, req, res, next) => {
     if(process.env.NODE_ENV === 'development')
         devError(err, res);
     else {
-        let error;
+        let error = { ...err };
         if(err.code === 11000)
             error = handleDuplicateErrorDB();
+        else if(err.message.includes('validation failed'))
+            error = handleValidationErrorDB(err.message);
         prodError(error, res);
     }
 }
