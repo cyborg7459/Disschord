@@ -3,9 +3,9 @@ const slugify = require('slugify');
 
 const serverSchema = new mongoose.Schema({
     name: {
+        unique: true,
         type: String,
         required: [true, 'A server must have a name'],
-        unique: true
     },
     isPrivate: {
         type: Boolean,
@@ -26,6 +26,10 @@ const serverSchema = new mongoose.Schema({
         ref: 'User'
     }],
     createdAt : Date,
+    pendingRequests : [{
+        type: mongoose.Schema.ObjectId,
+        ref : 'User'
+    }],
     members: [{
         type: mongoose.Schema.ObjectId,
         ref: 'User'
@@ -42,6 +46,11 @@ const serverSchema = new mongoose.Schema({
 serverSchema.virtual('memberCount').get(function() {
     return this.members.length
 });
+
+serverSchema.pre(/^find$/, function(next) {
+    this.select('-pendingRequests');
+    next();
+})
 
 serverSchema.pre('save', function(next) {
     this.slug = slugify(this.name, {
@@ -66,6 +75,10 @@ serverSchema.pre(/^find/, function(next) {
         path: 'owner',
         select: '-passwordChangedAt -password -passwordResetToken -passwordResetExpiry'
     });
+    this.populate({
+        path: 'pendingRequests',
+        select: '-passwordChangedAt -password -passwordResetToken -passwordResetExpiry'
+    })
     next();
 })
 
