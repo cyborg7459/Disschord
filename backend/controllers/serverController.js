@@ -193,3 +193,26 @@ exports.makeAdmin = async (req, res, next) => {
         return next(err);
     }
 }
+
+exports.removeFromAdmin = async (req, res, next) => {
+    try {
+        const server = await Server.findOne({ slug : req.params.slug });
+        if(!server) return next(new appError('Server not found', 404));
+
+        const adminToRemove = server.admins.find(admin => admin._id.equals(req.params.id));
+        if(!adminToRemove) return next(new appError('No admin with this ID', 404));
+
+        if(!server.owner._id.equals(req.user._id)) return next(new appError('You are not authorized to perform this action'));
+
+        server.admins = server.admins.filter(admin => !admin._id.equals(req.params.id));
+        await server.save();
+
+        res.status(200).json({
+            status: 'success',
+            message: 'removed admin'
+        })
+    }
+    catch(err) {
+        return next(err);
+    }
+}

@@ -22,5 +22,6 @@ router.route('/:slug/request/:id')
 
 router.route('/:slug/admins/:id')
 .post(authController.protect, serverController.makeAdmin)
+.delete(authController.protect, serverController.removeFromAdmin);
 
 module.exports = router;
