@@ -9,6 +9,10 @@ const userSchema = new mongoose.Schema({
         required: [true, 'A user must have a name'],
         unique: true
     },
+    servers: [{
+        type: mongoose.Schema.ObjectId,
+        ref: 'Server'
+    }],
     email: {
         type: String, 
         required: [true, 'A user must have an email address'],
@@ -39,6 +43,14 @@ const userSchema = new mongoose.Schema({
         default: true,
         select: false
     }
+})
+
+userSchema.pre(/^find/, function(next) {
+    this.populate({
+        path: 'servers',
+        select: '-admins -pendingRequests -members'
+    });
+    next();
 })
 
 // Pre-save middleware which does the function of converting a new password into a hash before storing it in tha databse

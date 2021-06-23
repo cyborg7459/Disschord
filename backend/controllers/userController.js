@@ -15,3 +15,12 @@ exports.getAllUsers = async (req, res, next) => {
         return next(err);
     }
 }
+
+// exports.getSingleUser = async (req, res, next) => {
+//     try {
+//         const user = User.findOne({});
+//     }
+//     catch(err) {
+//         return next(err);
+//     }
+// }
