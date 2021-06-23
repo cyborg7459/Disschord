@@ -16,4 +16,7 @@ router.route('/:slug/request')
 .get(authController.protect, serverController.getPendingRequests)
 .post(authController.protect, serverController.sendRequestToJoin);
 
+router.route('/:slug/request/:id')
+.delete(authController.protect, serverController.deleteJoinRequest);
+
 module.exports = router;

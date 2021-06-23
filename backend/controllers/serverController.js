@@ -124,3 +124,26 @@ exports.getPendingRequests = async (req, res, next) => {
         return next(err);
     }
 }
+
+exports.deleteJoinRequest = async (req, res, next) => {
+    try {
+        const server = await Server.findOne({ slug : req.params.slug });
+        if(!server) return next(new appError('Server not found', 404));
+
+        const request = server.pendingRequests.find(request => request._id.equals(req.params.id));
+        if(!request) return next(new appError('Request not found', 404));
+
+        if(!request._id.equals(req.user._id) && !server.admins.find(admin => admin._id.equals(req.user._id))) return next(new appError('You are not authorized for this action', 403));
+
+        server.pendingRequests = server.pendingRequests.filter(request => !request._id.equals(req.params.id));
+        await server.save();
+
+        res.status(200).json({
+            status: 'Success',
+            message: 'Request deleted successfully'
+        })
+    }
+    catch(err) {
+        return next(err);
+    }
+}
