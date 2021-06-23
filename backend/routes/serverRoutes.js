@@ -17,6 +17,10 @@ router.route('/:slug/request')
 .post(authController.protect, serverController.sendRequestToJoin);
 
 router.route('/:slug/request/:id')
-.delete(authController.protect, serverController.deleteJoinRequest);
+.delete(authController.protect, serverController.deleteJoinRequest)
+.post(authController.protect, serverController.acceptJoinRequest);
+
+router.route('/:slug/admins/:id')
+.post(authController.protect, serverController.makeAdmin)
 
 module.exports = router;

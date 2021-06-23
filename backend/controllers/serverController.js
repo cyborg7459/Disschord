@@ -19,7 +19,6 @@ exports.getAllServers = async (req, res, next) => {
 
 exports.createNewServer = async (req, res, next) => {
     try {
-        console.log(req.body);
         const newServer = await Server.create({
             name: req.body.name,
             isPrivate: req.body.isPrivate,
@@ -141,6 +140,53 @@ exports.deleteJoinRequest = async (req, res, next) => {
         res.status(200).json({
             status: 'Success',
             message: 'Request deleted successfully'
+        })
+    }
+    catch(err) {
+        return next(err);
+    }
+}
+
+exports.acceptJoinRequest = async (req, res, next) => {
+    try {
+        const server = await Server.findOne({ slug : req.params.slug });
+        if(!server) return next(new appError('Server not found', 404));
+
+        const curRequest = server.pendingRequests.find(request => request._id.equals(req.params.id));
+        if(!curRequest) return next(new appError('Request not found', 404));
+
+        if(!server.admins.find(admin => admin._id.equals(req.user._id))) return next(new appError('You are not authorized for this action', 403));
+
+        server.pendingRequests = server.pendingRequests.filter(request => !request._id.equals(req.params.id));
+        server.members.push(req.params.id);
+        await server.save();
+
+        res.status(200).json({
+            status: 'success',
+            message: 'request accepted'
+        })
+    }
+    catch(err) {
+        return next(err);
+    }
+}
+
+exports.makeAdmin = async (req, res, next) => {
+    try {
+        const server = await Server.findOne({ slug : req.params.slug });
+        if(!server) return next(new appError('Server not found', 404));
+
+        const userToAdd = server.members.find(member => member._id.equals(req.params.id));
+        if(!userToAdd) return next(new appError('User is not member of server', 404));
+
+        if(!server.owner._id.equals(req.user._id)) return next(new appError('You are not authorized to perform this operation',403));
+
+        server.admins.push(req.params.id);
+        await server.save();
+
+        res.status(200).json({
+            status: 'success',
+            message: 'added admin'
         })
     }
     catch(err) {
