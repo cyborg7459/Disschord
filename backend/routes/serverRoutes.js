@@ -13,19 +13,20 @@ router.route('/')
 router.use('/:slug', serverController.checkServerExistence);
 router.route('/:slug')
 .get(serverController.getSingleServer)
-.patch(serverController.updateServerDetails)
+.patch(serverController.checkServerOwnership, serverController.updateServerDetails)
 .delete(serverController.checkServerOwnership, serverController.deleteServer);
 
 router.route('/:slug/request')
-.get(serverController.getPendingRequests)
+.get(serverController.authorizeAdmins, serverController.getPendingRequests)
 .post(serverController.sendRequestToJoin);
 
 router.route('/:slug/request/:id')
 .delete(serverController.deleteJoinRequest)
-.post(serverController.acceptJoinRequest);
+.post(serverController.authorizeAdmins, serverController.acceptJoinRequest);
 
+router.use('/:slug/admins/:id', serverController.checkServerOwnership);
 router.route('/:slug/admins/:id')
-.post(serverController.checkServerOwnership, serverController.makeAdmin)
+.post(serverController.makeAdmin)
 .delete(serverController.removeFromAdmin);
 
 module.exports = router;

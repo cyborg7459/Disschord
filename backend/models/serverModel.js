@@ -34,18 +34,7 @@ const serverSchema = new mongoose.Schema({
         type: mongoose.Schema.ObjectId,
         ref: 'User'
     }]
-}, {
-    toJSON: {
-        virtuals: true
-    },
-    toObject: {
-        virtuals: true
-    }
 })
-
-serverSchema.virtual('memberCount').get(function() {
-    return this.members.length
-});
 
 serverSchema.pre(/^find$/, function(next) {
     this.select('-pendingRequests');
