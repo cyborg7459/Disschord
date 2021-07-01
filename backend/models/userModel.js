@@ -46,6 +46,7 @@ const userSchema = new mongoose.Schema({
 })
 
 userSchema.pre(/^find/, function(next) {
+    this.select('-__v');
     this.populate({
         path: 'servers',
         select: '-admins -pendingRequests -__v -id -members'

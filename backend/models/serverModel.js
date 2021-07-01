@@ -52,6 +52,7 @@ serverSchema.pre('save', function(next) {
 })
 
 serverSchema.pre(/^find/, function(next) {
+    this.select('-__v');
     this.populate({
         path: 'members',
         select: '-passwordChangedAt -password -passwordResetToken -passwordResetExpiry -servers'
@@ -66,7 +67,7 @@ serverSchema.pre(/^find/, function(next) {
     });
     this.populate({
         path: 'pendingRequests',
-        select: '-passwordChangedAt -password -passwordResetToken -passwordResetExpiry'
+        select: '-passwordChangedAt -servers -password -passwordResetToken -passwordResetExpiry'
     })
     next();
 })

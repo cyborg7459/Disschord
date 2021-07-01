@@ -26,12 +26,24 @@ exports.checkServerOwnership = async (req, res, next) => {
 
 exports.authorizeAdmins = async (req, res, next) => {
     try {
-        if(!req.server.admins.find(admin => admin._id.equals(userID))) 
+        if(!req.server.admins.find(admin => admin._id.equals(req.user._id))) 
             return next(new appError('You are not authorized for this action', 403));
+        next();
     }
     catch (err) {
         return next(err)
     }
+}
+
+const addUserToServer = async (user, server) => {
+    server.members.push(user._id);
+    await server.save();
+
+    await User.findByIdAndUpdate(user._id, {
+        servers : [...user.servers, server._id]
+    }, {
+        runValidators: false
+    })
 }
 
 exports.getAllServers = async (req, res, next) => {
@@ -60,14 +72,9 @@ exports.createNewServer = async (req, res, next) => {
         })
 
         newServer.admins.push(req.user._id);
-        newServer.members.push(req.user._id);
         await newServer.save();
         
-        await User.findByIdAndUpdate(req.user._id, {
-            servers : servers
-        }, {
-            runValidators: false
-        })
+        addUserToServer(req.user, newServer);
 
         res.status(201).json({
             status: 'Success',
@@ -128,6 +135,8 @@ exports.sendRequestToJoin = async (req, res, next) => {
         const user = req.server.members.find(member => member._id.equals(requestID));
         if(user) return next(new appError('You are already a member', 500));
 
+        if(req.server.pendingRequests.find(request => request.equals(requestID)))
+            return next(new appError("You've already sent a joining request", 500)) 
         req.server.pendingRequests.push(requestID);
         await req.server.save();
 
@@ -164,10 +173,10 @@ exports.deleteJoinRequest = async (req, res, next) => {
         const request = req.server.pendingRequests.find(request => request._id.equals(req.params.id));
         if(!request) return next(new appError('Request not found', 404));
 
-        if(!request._id.equals(req.user._id) && !server.admins.find(admin => admin._id.equals(req.user._id))) return next(new appError('You are not authorized for this action', 403));
+        if(!request._id.equals(req.user._id) && !req.server.admins.find(admin => admin._id.equals(req.user._id))) return next(new appError('You are not authorized for this action', 403));
 
-        server.pendingRequests = server.pendingRequests.filter(request => !request._id.equals(req.params.id));
-        await server.save();
+        req.server.pendingRequests = req.server.pendingRequests.filter(request => !request._id.equals(req.params.id));
+        await req.server.save();
 
         res.status(200).json({
             status: 'Success',
@@ -185,8 +194,10 @@ exports.acceptJoinRequest = async (req, res, next) => {
         if(!curRequest) return next(new appError('Request not found', 404));
 
         req.server.pendingRequests = req.server.pendingRequests.filter(request => !request._id.equals(req.params.id));
-        req.server.members.push(req.params.id);
         await req.server.save();
+
+        const userAdded = await User.findById(req.params.id);
+        addUserToServer(userAdded, req.server);
 
         res.status(200).json({
             status: 'success',
@@ -221,8 +232,8 @@ exports.removeFromAdmin = async (req, res, next) => {
         const adminToRemove = req.server.admins.find(admin => admin._id.equals(req.params.id));
         if(!adminToRemove) return next(new appError('No admin with this ID', 404));
 
-        req.server.admins = server.admins.filter(admin => !admin._id.equals(req.params.id));
-        await server.save();
+        req.server.admins = req.server.admins.filter(admin => !admin._id.equals(req.params.id));
+        await req.server.save();
 
         res.status(200).json({
             status: 'success',
