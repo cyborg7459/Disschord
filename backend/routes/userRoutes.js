@@ -8,7 +8,11 @@ router.post('/register', authController.signup);
 router.post('/login', authController.login);
 router.post('/logout', authController.logout);
 
+router.use(authController.protect);
 router.route('/')
-    .get(authController.protect, userController.getAllUsers)
+.get(userController.getAllUsers)
+
+router.route('/:username')
+.get(userController.getSingleUser);
 
 module.exports = router;

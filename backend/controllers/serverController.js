@@ -73,6 +73,12 @@ exports.createNewServer = async (req, res, next) => {
 
         newServer.admins.push(req.user._id);
         await newServer.save();
+
+        await User.findByIdAndUpdate(req.user._id, {
+            serversOwned: [...req.user.serversOwned, newServer._id]
+        }, {
+            runValidators: false
+        })
         
         addUserToServer(req.user, newServer);
 

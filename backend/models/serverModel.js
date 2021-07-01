@@ -55,15 +55,15 @@ serverSchema.pre(/^find/, function(next) {
     this.select('-__v');
     this.populate({
         path: 'members',
-        select: '-passwordChangedAt -password -passwordResetToken -passwordResetExpiry -servers'
+        select: '-passwordChangedAt -serversOwned -password -passwordResetToken -passwordResetExpiry -servers'
     });
     this.populate({
         path: 'admins',
-        select: '-passwordChangedAt -password -passwordResetToken -passwordResetExpiry -servers'
+        select: '-passwordChangedAt -serversOwned -password -passwordResetToken -passwordResetExpiry -servers'
     });
     this.populate({
         path: 'owner',
-        select: '-passwordChangedAt -password -passwordResetToken -passwordResetExpiry -servers'
+        select: '-passwordChangedAt -serversOwned -password -passwordResetToken -passwordResetExpiry -servers'
     });
     this.populate({
         path: 'pendingRequests',

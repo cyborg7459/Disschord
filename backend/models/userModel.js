@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
+const slugify = require('slugify');
 
 const userSchema = new mongoose.Schema({
     name: {
@@ -10,6 +11,10 @@ const userSchema = new mongoose.Schema({
         unique: [true, 'Given username is already taken']
     },
     servers: [{
+        type: mongoose.Schema.ObjectId,
+        ref: 'Server'
+    }],
+    serversOwned: [{
         type: mongoose.Schema.ObjectId,
         ref: 'Server'
     }],
@@ -51,11 +56,20 @@ userSchema.pre(/^find/, function(next) {
         path: 'servers',
         select: '-admins -pendingRequests -__v -id -members'
     });
+    this.populate({
+        path: 'serversOwned',
+        select: '-admins -owner -pendingRequests -__v -id -members'
+    });
     next();
 })
 
 // Pre-save middleware which does the function of converting a new password into a hash before storing it in tha databse
 userSchema.pre('save', async function(next) {
+    if(this.isNew) {
+        this.username = slugify(this.name, {
+            lower: true
+        })
+    }
     if(!this.isModified('password')) return next();
     else {                      
         this.password = await bcrypt.hash(this.password, 12);
