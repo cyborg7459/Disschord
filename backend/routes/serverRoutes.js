@@ -4,24 +4,28 @@ const router = express.Router();
 const serverController = require('../controllers/serverController');
 const authController = require('../controllers/authController');
 
-router.route('/')
-.get(authController.protect, serverController.getAllServers)
-.post(authController.protect, serverController.createNewServer);
+router.use(authController.protect);
 
+router.route('/')
+.get(serverController.getAllServers)
+.post(serverController.createNewServer);
+
+router.use('/:slug', serverController.checkServerExistence);
 router.route('/:slug')
-.get(authController.protect, serverController.getSingleServer)
-.delete(authController.protect, serverController.deleteServer);
+.get(serverController.getSingleServer)
+.patch(serverController.updateServerDetails)
+.delete(serverController.checkServerOwnership, serverController.deleteServer);
 
 router.route('/:slug/request')
-.get(authController.protect, serverController.getPendingRequests)
-.post(authController.protect, serverController.sendRequestToJoin);
+.get(serverController.getPendingRequests)
+.post(serverController.sendRequestToJoin);
 
 router.route('/:slug/request/:id')
-.delete(authController.protect, serverController.deleteJoinRequest)
-.post(authController.protect, serverController.acceptJoinRequest);
+.delete(serverController.deleteJoinRequest)
+.post(serverController.acceptJoinRequest);
 
 router.route('/:slug/admins/:id')
-.post(authController.protect, serverController.makeAdmin)
-.delete(authController.protect, serverController.removeFromAdmin);
+.post(serverController.checkServerOwnership, serverController.makeAdmin)
+.delete(serverController.removeFromAdmin);
 
 module.exports = router;

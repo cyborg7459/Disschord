@@ -1,6 +1,28 @@
 const appError = require('../utils/appError');
 const Server = require('../models/serverModel');
 
+exports.checkServerExistence = async (req, res, next) => {
+    try {
+        const server = await Server.findOne({ slug : req.params.slug });
+        if(!server) return next(new appError('No server found with that name', 404));
+        req.server = server;
+        next();
+    }
+    catch (err) {
+        next(err);
+    }
+}
+
+exports.checkServerOwnership = async (req, res, next) => {
+    try { 
+        if(!req.server.owner._id.equals(req.user._id)) return next(new appError('You are not authorized for this action', 403));
+        next();
+    }
+    catch {
+        return next(err);
+    }
+}
+
 exports.getAllServers = async (req, res, next) => {
     try {
         const servers = await Server.find({});
@@ -28,8 +50,10 @@ exports.createNewServer = async (req, res, next) => {
 
         newServer.admins.push(req.user._id);
         newServer.members.push(req.user._id);
-
+        
+        req.user.servers.push(newServer._id);
         await newServer.save();
+        await req.user.save();
 
         res.status(201).json({
             status: 'Success',
@@ -43,19 +67,25 @@ exports.createNewServer = async (req, res, next) => {
     }
 }
 
+exports.updateServerDetails = async (req, res, next) => {
+    try {
+
+    }
+    catch(err) {
+
+    }
+}
+
 exports.getSingleServer = async (req, res, next) => {
     try {
-        let server = await Server.findOne({ slug: req.params.slug });
-        if(!server) return next(new appError('No server found with that name', 404));
         const curUser = req.user._id;
-        if(!server.admins.find(admin => admin._id.equals(curUser))) {
-            console.log("Hel");
-            server.pendingRequests = undefined
+        if(!req.server.admins.find(admin => admin._id.equals(curUser))) {
+            req.server.pendingRequests = undefined
         }
         res.status(200).json({
             status: 'success',
             data: {
-                server
+                server : req.server
             }
         })
     }
@@ -66,12 +96,7 @@ exports.getSingleServer = async (req, res, next) => {
 
 exports.deleteServer = async (req, res, next) => {
     try {
-        const server = await Server.findOne({ slug : req.params.slug });
-        if(!server) return next(new appError('No server found with that name', 404));
-        if(!server.owner._id.equals(req.user._id)) return next(new appError('You are not authorized to delete the server belonging to someone else', 403));
-
-        await Server.findByIdAndDelete(server._id);
-
+        await Server.findByIdAndDelete(req.server._id);
         res.status(204).json({
             status: 'success',
             data: {}
@@ -172,17 +197,12 @@ exports.acceptJoinRequest = async (req, res, next) => {
 }
 
 exports.makeAdmin = async (req, res, next) => {
-    try {
-        const server = await Server.findOne({ slug : req.params.slug });
-        if(!server) return next(new appError('Server not found', 404));
-
-        const userToAdd = server.members.find(member => member._id.equals(req.params.id));
+    try {        
+        const userToAdd = req.server.members.find(member => member._id.equals(req.params.id));
         if(!userToAdd) return next(new appError('User is not member of server', 404));
 
-        if(!server.owner._id.equals(req.user._id)) return next(new appError('You are not authorized to perform this operation',403));
-
-        server.admins.push(req.params.id);
-        await server.save();
+        req.server.admins.push(req.params.id);
+        await req.server.save();
 
         res.status(200).json({
             status: 'success',
