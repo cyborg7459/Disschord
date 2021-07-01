@@ -7,7 +7,7 @@ const userSchema = new mongoose.Schema({
     name: {
         type: String, 
         required: [true, 'A user must have a name'],
-        unique: true
+        unique: [true, 'Given username is already taken']
     },
     servers: [{
         type: mongoose.Schema.ObjectId,
