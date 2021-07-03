@@ -33,6 +33,7 @@ exports.signup = async (req, res, next) => {
     try {
         const newUser = await User.create({
             name: req.body.name,
+            username: req.body.username,
             email: req.body.email,
             password: req.body.password,
             passconf: req.body.passconf

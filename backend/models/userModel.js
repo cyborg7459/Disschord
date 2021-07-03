@@ -7,8 +7,12 @@ const slugify = require('slugify');
 const userSchema = new mongoose.Schema({
     name: {
         type: String, 
-        required: [true, 'A user must have a name'],
-        unique: [true, 'Given username is already taken']
+        required: [true, 'A user must have a name']
+    },
+    username: {
+        type: String, 
+        unique: true,
+        required: [true, 'A user must have a username']
     },
     servers: [{
         type: mongoose.Schema.ObjectId,
@@ -66,7 +70,7 @@ userSchema.pre(/^find/, function(next) {
 // Pre-save middleware which does the function of converting a new password into a hash before storing it in tha databse
 userSchema.pre('save', async function(next) {
     if(this.isNew) {
-        this.username = slugify(this.name, {
+        this.username = slugify(this.username, {
             lower: true
         })
     }
