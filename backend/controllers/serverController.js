@@ -35,11 +35,15 @@ exports.authorizeAdmins = async (req, res, next) => {
     }
 }
 
-const addUserToServer = async (user, server) => {
-    server.members.push(user._id);
+const addUserToServer = async (userID, server) => {
+    server.members.push(userID);
+    server.pendingRequests = server.pendingRequests.filter(requestID => {
+        return (!userID.equals(requestID))
+    })
     await server.save();
 
-    await User.findByIdAndUpdate(user._id, {
+    const user = await User.findById(userID);
+    await User.findByIdAndUpdate(userID, {
         servers : [...user.servers, server._id]
     }, {
         runValidators: false
@@ -80,7 +84,7 @@ exports.createNewServer = async (req, res, next) => {
             runValidators: false
         })
         
-        addUserToServer(req.user, newServer);
+        addUserToServer(req.user._id, newServer);
 
         res.status(201).json({
             status: 'Success',
@@ -96,10 +100,30 @@ exports.createNewServer = async (req, res, next) => {
 
 exports.updateServerDetails = async (req, res, next) => {
     try {
+        const updatedServer = {
+            isPrivate: req.body.isPrivate,
+            description: req.body.description || req.server.description,
+        }
+        
+        if(!updatedServer.isPrivate) {
+            req.server.pendingRequests.forEach(async requestID => {
+                await addUserToServer(requestID, req.server);
+            })
+        }
+        
+        const server = await Server.findByIdAndUpdate(req.server._id, updatedServer, {
+            runValidators: true
+        });
 
+        res.status(200).json({
+            status: 'success',
+            data : {
+                server
+            }
+        })
     }
     catch(err) {
-
+        next(err);
     }
 }
 
@@ -136,10 +160,18 @@ exports.deleteServer = async (req, res, next) => {
 
 exports.sendRequestToJoin = async (req, res, next) => {
     try {
-        if(!req.server.isPrivate) return next(new appError('Can\'t send joining request to a public server', 500));
         const requestID = req.user._id;
         const user = req.server.members.find(member => member._id.equals(requestID));
         if(user) return next(new appError('You are already a member', 500));
+
+        if(!req.server.isPrivate) {
+            addUserToServer(req.user._id, req.server);
+            res.status(200).json({
+                status: 'success',
+                message: 'server joined'
+            })
+            return next();
+        }
 
         if(req.server.pendingRequests.find(request => request.equals(requestID)))
             return next(new appError("You've already sent a joining request", 500)) 
@@ -202,8 +234,7 @@ exports.acceptJoinRequest = async (req, res, next) => {
         req.server.pendingRequests = req.server.pendingRequests.filter(request => !request._id.equals(req.params.id));
         await req.server.save();
 
-        const userAdded = await User.findById(req.params.id);
-        addUserToServer(userAdded, req.server);
+        addUserToServer(req.params.id, req.server);
 
         res.status(200).json({
             status: 'success',
