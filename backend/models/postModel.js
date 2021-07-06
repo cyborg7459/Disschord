@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const PostSchema = new mongoose.Schema({
+const postSchema = new mongoose.Schema({
     title : {
         type: String, 
         required: [true, 'A post must have a title']
@@ -8,7 +8,7 @@ const PostSchema = new mongoose.Schema({
     imageUrl : String,
     content: {
         type: String,
-        required: [true, 'A post must have a title']
+        required: [true, 'A post must have some content']
     },
     upvotes: {
         type: Number,
@@ -18,6 +18,10 @@ const PostSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    // comments: [{
+    //     type: mongoose.Schema.ObjectId,
+    //     ref: 'Comment'
+    // }],
     byUser: {
         type: mongoose.Schema.ObjectId,
         ref: 'User',
@@ -26,5 +30,17 @@ const PostSchema = new mongoose.Schema({
     forServer: String
 })
 
-const Post = mongoose.model('Post', PostSchema);
+postSchema.pre(/^find/, function(next) {
+    this.select('-__v');
+    this.populate({
+        path: 'byUser',
+        select: '-servers -serversOwned -active'
+    })
+    // this.populate({
+    //     path: 'comments'
+    // })
+    next();
+})
+
+const Post = mongoose.model('Post', postSchema);
 module.exports = Post;
