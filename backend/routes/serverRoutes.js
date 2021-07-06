@@ -3,7 +3,9 @@ const router = express.Router();
 
 const serverController = require('../controllers/serverController');
 const authController = require('../controllers/authController');
+const postRouter = require('../routes/postRoutes');
 
+router.use('/:slug/posts', authController.protect, serverController.checkServerExistence, postRouter);
 router.use(authController.protect);
 
 router.route('/')
