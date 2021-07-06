@@ -70,9 +70,7 @@ userSchema.pre(/^find/, function(next) {
 // Pre-save middleware which does the function of converting a new password into a hash before storing it in tha databse
 userSchema.pre('save', async function(next) {
     if(this.isNew) {
-        this.username = slugify(this.username, {
-            lower: true
-        })
+        this.username = slugify(this.username)
     }
     if(!this.isModified('password')) return next();
     else {                      
