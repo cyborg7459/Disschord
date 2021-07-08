@@ -18,27 +18,33 @@ const postSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
-    // comments: [{
-    //     type: mongoose.Schema.ObjectId,
-    //     ref: 'Comment'
-    // }],
     byUser: {
         type: mongoose.Schema.ObjectId,
         ref: 'User',
         required: [true, 'A post must have an owner']
     },
     forServer: String
+}, {
+    toJSON: {
+        virtuals: true
+    },
+    toObject: {
+        virtuals: true
+    }
+})
+
+postSchema.virtual('comments', {
+    ref: 'Comment',
+    foreignField: 'forPost',
+    localField: 'id'
 })
 
 postSchema.pre(/^find/, function(next) {
     this.select('-__v');
     this.populate({
         path: 'byUser',
-        select: '-servers -serversOwned -active'
+        select: '-servers -upvotedPosts -downvotedPosts -serversOwned -active'
     })
-    // this.populate({
-    //     path: 'comments'
-    // })
     next();
 })
 

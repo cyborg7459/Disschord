@@ -2,7 +2,9 @@ const express = require('express');
 const router = express.Router();
 
 const postController = require('../controllers/postController');
+const commentRouter = require('./commentRoutes');
 
+router.use('/:postID/comments', postController.checkPostExistence, commentRouter);
 router.route('/')
 .get(postController.getAllPosts)
 .post(postController.addNewPost)
