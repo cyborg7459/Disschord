@@ -18,15 +18,17 @@ const commentSchema = new mongoose.Schema({
     createdAt: {
         type: Date,
         default: Date.now()
-    },
-    upvotes: {
-        type: Number,
-        default: 0
-    },
-    downvotes: {
-        type: Number,
-        default: 0
     }
+})
+
+commentSchema.index({ forPost: 1});
+
+commentSchema.pre(/^find/, function(next) {
+    this.populate({
+        path: 'byUser',
+        select: '-servers -serversOwned -upvotedPosts -downvotedPosts -email -name'
+    })
+    next();
 })
 
 const Comment = mongoose.model('Comment', commentSchema);
