@@ -44,6 +44,14 @@ const userSchema = new mongoose.Schema({
             message: 'Password and confirmation password do not match'
         }
     },
+    upvotedPosts: [{
+        type: mongoose.Schema.ObjectId,
+        ref: 'Post'
+    }],
+    downvotedPosts: [{
+        type: mongoose.Schema.ObjectId,
+        ref: 'Post'
+    }], 
     passwordChangedAt: Date,
     passwordResetToken: String,
     passwordResetExpiry: Date,

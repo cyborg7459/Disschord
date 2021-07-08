@@ -1,4 +1,5 @@
 const Post = require('../models/postModel');
+const User = require('../models/userModel');
 const appError = require('../utils/appError');
 
 exports.checkPostExistence = async (req, res, next) => {
@@ -106,5 +107,81 @@ exports.deletePost = async (req, res, next) => {
     }
     catch(err) {
         return next(err);
+    }
+}
+
+exports.upvotePost = async (req, res, next) => {
+    try {
+        let isUpvoted = req.user.upvotedPosts.find(postId => postId.equals(req.post._id));
+        let isDownvoted = req.user.downvotedPosts.find(postId => postId.equals(req.post._id));
+
+        let upvotedPosts = req.user.upvotedPosts;
+        let downvotedPosts = req.user.downvotedPosts;
+
+        if(isUpvoted) return next(new appError('You cannot upvote a post twice', 400));
+        if(isDownvoted) {
+            req.post.downvotes--;
+            req.post.upvotes++;
+            await req.post.save();
+            downvotedPosts = downVotedPosts.filter(postID => !postID.equals(req.post._id));
+        }
+        else {
+            req.post.upvotes++;
+            await req.post.save();
+        }
+
+        upvotedPosts.push(req.post._id);
+        await User.findByIdAndUpdate(req.user._id, {
+            upvotedPosts, 
+            downvotedPosts
+        }, {
+            runValidators: false
+        })
+
+        res.status(200).json({
+            status: 'success',
+            message: 'post upvoted'
+        })
+    }
+    catch(err) {
+        return next(err)
+    }
+}
+
+exports.downvotePost = async (req, res, next) => {
+    try {
+        let isUpvoted = req.user.upvotedPosts.find(postId => postId.equals(req.post._id));
+        let isDownvoted = req.user.downvotedPosts.find(postId => postId.equals(req.post._id));
+
+        let upvotedPosts = req.user.upvotedPosts;
+        let downvotedPosts = req.user.downvotedPosts;
+
+        if(isDownvoted) return next(new appError('You cannot downvote a post twice', 400));
+        if(isUpvoted) {
+            req.post.downvotes++;
+            req.post.upvotes--;
+            await req.post.save();
+            upvotedPosts = upvotedPosts.filter(postID => !postID.equals(req.post._id));
+        }
+        else {
+            req.post.downvotes++;
+            await req.post.save();
+        }
+
+        downvotedPosts.push(req.post._id);
+        await User.findByIdAndUpdate(req.user._id, {
+            upvotedPosts, 
+            downvotedPosts
+        }, {
+            runValidators: false
+        })
+
+        res.status(200).json({
+            status: 'success',
+            message: 'post downvoted'
+        })
+    }
+    catch(err) {
+        return next(err)
     }
 }

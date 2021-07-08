@@ -14,4 +14,7 @@ router.route('/:postID')
 .patch(postController.checkPostOwnership, postController.updatePost)
 .delete(postController.checkPostOwnership, postController.deletePost)
 
+router.post('/:postID/upvote', postController.upvotePost);
+router.post('/:postID/downvote', postController.downvotePost);
+
 module.exports = router;
