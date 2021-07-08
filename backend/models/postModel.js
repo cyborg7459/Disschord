@@ -36,14 +36,14 @@ const postSchema = new mongoose.Schema({
 postSchema.virtual('comments', {
     ref: 'Comment',
     foreignField: 'forPost',
-    localField: 'id'
+    localField: '_id'
 })
 
 postSchema.pre(/^find/, function(next) {
     this.select('-__v');
     this.populate({
         path: 'byUser',
-        select: '-servers -upvotedPosts -downvotedPosts -serversOwned -active'
+        select: '-servers -email -upvotedPosts -downvotedPosts -serversOwned -active'
     })
     next();
 })
