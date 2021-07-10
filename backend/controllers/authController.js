@@ -29,6 +29,20 @@ const sendJSONWebToken = (user, statusCode, res) => {
     })
 }
 
+exports.getUserFromJWT = (req, res, next) => {
+    try {
+        res.status(200).json({
+            status: 'success',
+            data: {
+                user
+            }
+        })
+    }
+    catch(err) {
+        next(err);
+    }
+}
+
 exports.signup = async (req, res, next) => {
     try {
         const newUser = await User.create({
@@ -75,6 +89,8 @@ exports.protect = (req, res, next) => {
             token = req.headers.authorization.split(' ')[1];
         else if(req.cookies.jwt)
             token = req.cookies.jwt;
+        
+        console.log(token);
 
         if(!token || token === 'null') return next(new appError('You are not logged in', 401));
 

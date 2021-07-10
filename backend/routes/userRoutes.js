@@ -15,4 +15,7 @@ router.route('/')
 router.route('/:username')
 .get(userController.getSingleUser);
 
+router.get('/getCurrentUser')
+.get(authController.getUserFromJWT);
+
 module.exports = router;
